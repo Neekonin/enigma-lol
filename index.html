@@ -277,9 +277,9 @@
             3: {
                 enigma: `
                     <h1>Fase 3: Linguagem das Máquinas</h1>
-                    <p>Ekko recebeu um projeto do heimerdinger. mas ele não sabe dizer do que se trata.</p>
+                    <p>Ekko recebeu um projeto do Heimerdinger. mas ele não sabe dizer do que se trata.</p>
                     <p>Clique abaixo para ver o projeto:</p>
-                    <button class="btn-pista" onclick="openModal(3)">Ver Anotação</button>
+                    <button class="btn-pista" onclick="openModal(3)">Ver projeto</button>
                     <p>Junto do projeto ele também encontrou esses números:</p>
                     <div class="codigo-binario">
                         01101000 01110100 01110100 01110000 01110011 00111010 00101111 00101111 00101010 00101010 00101010 00101010 00101010 00101110 01100011 01101111 01101101 00101111 01100001 00101111 01000011 00110010 00110117 01010010 00110111 01011010 01010001 
@@ -293,9 +293,9 @@
             4: {
                 enigma: `
                     <h1>Fase 4: Amor por Números</h1>
-                    <p>Ao realizar suas pesquisas Singed encontra um papel que ele sempre soube o que era. Ele lembra sobre seus ensinamentos onde números também podem ser escritos como palavras, basta compreender sua ordem.</p>
-                    <p>Clique abaixo para ver a anotação:</p>
-                    <button class="btn-pista" onclick="openModal(4)">Ver Anotação</button>
+                    <p>Singed ao revirar seu laboratório procurando materiais, encontra um papel que ele sempre soube o que era. Então ele relembra sobre seus ensinamentos, "onde números também podem ser escritos como palavras, basta compreender sua ordem".</p>
+                    <p>Clique abaixo para ver o papel:</p>
+                    <button class="btn-pista" onclick="openModal(4)">Ver papel</button>
                     <p>Insira a **PALAVRA-CHAVE** abaixo.</p>
                 `,
                 correctHash: "463cedf14606557478dd1a62f6b09c146d38679abcc440134767b713c43e1062",
@@ -319,8 +319,8 @@
                 enigma: `
                     <h1>Fase 6: O Caminho Para o Equilíbrio</h1>
                     <p>Ezreal está seguindo viajem e precisa decidir seu proximo destino, através de uma nova relíquia. Ela mostra onde ele deve ir através de números.</p>
-                    <p>Clique abaixo para ver o mapa:</p>
-                    <button class="btn-pista" onclick="openModal(6)">Ver Pista de Localização</button>
+                    <p>Clique abaixo para ver o que a relíquia mostra:</p>
+                    <button class="btn-pista" onclick="openModal(6)">Ver relíquia</button>
                     <p>Insira a **PALAVRA-CHAVE** abaixo.</p>
                 `,
                 correctHash: "78467502ce393df1d6881025e2146b8d25c89835e8ef1b6258ad3fdccc92aad5",
@@ -399,7 +399,7 @@
                 setTimeout(() => {
                     currentStage = nextStageCode;
                     loadNewStage();
-                }, 3000); 
+                }, 2000); 
 
             } else {
                 feedbackArea.textContent = "Resposta Incorreta. Tente novamente...";
