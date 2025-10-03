@@ -229,6 +229,7 @@
             }
         }
 
+        const FINAL_HASH_CODE = 'OTg5MTM2ODY1NTI5MzAxMDI=';
 
         // --- GAME STAGES: GAME THEME (8 Enigmas + 1 End) ---
         const STAGES = {
@@ -349,8 +350,10 @@
             9: {
                 enigma: `
                     <h1 style="color: #00ff00;">>>> ENIGMA CONCLUÍDO! <<<</h1>
-                    <p>Parabéns, Comandante. Você decifrou todos os códigos e provou ser um mestre dos enigmas digitais e da Metacriptografia. Você desbloqueou o **Achievement: ARG Master**.</p>
-                    <p>O desafio chegou ao fim. **Parabéns!**</p>
+                    <p>Parabéns, jogador. Você decifrou todos os códigos e enigmas provando seu valor.</p>
+                    <p>O desafio chegou ao fim. Sua recompensa é o **Código Final de Desbloqueio**:</p>
+                    <div id="codigo-recompensa">${atob(FINAL_HASH_CODE)}</div>
+                    <p>Este código é o resultado de toda a sua jornada. **Parabéns!**</p>
                 `,
                 correctHash: "", 
                 nextCode: null,
