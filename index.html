@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O Enigma do Console Perdido</title>
+    
+    <style>
+        /* --- ESTILOS GERAIS (MANTIDOS) --- */
+        body {
+            background-color: #1a1a1a;
+            color: #00ff00; /* Verde néon */
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        #jogo-container {
+            width: 90%;
+            max-width: 700px;
+            padding: 30px;
+            border: 2px solid #00ff00;
+            box-shadow: 0 0 10px #00ff00;
+        }
+
+        h1 {
+            color: #ff00ff; /* Rosa choque para destaque */
+            text-align: center;
+            text-shadow: 0 0 5px #ff00ff;
+            margin-bottom: 20px;
+        }
+
+        #enigma-display p {
+            line-height: 1.6;
+            margin-bottom: 25px;
+            border-left: 3px solid #00ff00;
+            padding-left: 15px;
+        }
+        
+        /* ... outros estilos de fases (cifra-cesar, geolocation-cifra, etc.) ... */
+
+        .mapeamento-numerico, .cifra-cesar, .codigo-binario, .codigo-pista, .geolocation-cifra {
+            font-size: 1.3em;
+            letter-spacing: 2px;
+            text-align: center;
+            padding: 15px;
+            background-color: #0d0d0d;
+            border: 1px solid #00ff00;
+            word-break: break-all;
+        }
+
+        /* --- ESTILO PARA O BOTÃO DE PISTA (Fase 4 e 6) --- */
+        .btn-pista {
+            display: block;
+            margin: 20px auto;
+            padding: 15px 30px;
+            background-color: #ff00ff; /* Rosa choque para destaque */
+            color: #1a1a1a;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            box-shadow: 0 0 5px #ff00ff;
+        }
+        .btn-pista:hover {
+            background-color: #00ff00;
+            box-shadow: 0 0 10px #00ff00;
+        }
+
+        /* --- ESTILOS DO MODAL --- */
+        .modal {
+            display: none; /* Escondido por padrão */
+            position: fixed; 
+            z-index: 10; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.8); /* Fundo escuro */
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            margin: 10% auto; /* 10% do topo e centralizado */
+            width: 80%;
+            max-width: 600px;
+            padding: 20px;
+            background-color: #1a1a1a;
+            border: 3px solid #00ff00;
+            position: relative;
+            text-align: center;
+        }
+
+        .modal-content img {
+            width: 100%;
+            height: auto;
+        }
+
+        .close {
+            color: #ff00ff;
+            float: right;
+            font-size: 35px;
+            font-weight: bold;
+            position: absolute;
+            top: 5px;
+            right: 15px;
+            cursor: pointer;
+            text-shadow: 0 0 5px #ff00ff;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        /* ... restante dos estilos (input, button, feedback) ... */
+
+        #input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        #codigo-input {
+            padding: 10px;
+            background-color: #0d0d0d;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            font-family: inherit;
+            font-size: 1em;
+        }
+
+        button {
+            padding: 12px;
+            background-color: #00ff00;
+            color: #1a1a1a;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #ff00ff;
+            color: #1a1a1a;
+        }
+
+        #feedback {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .mensagem-erro {
+            color: #ff3333; /* Vermelho */
+        }
+
+        .mensagem-sucesso {
+            color: #00ff00; /* Verde */
+        }
+    </style>
+</head>
+<body>
+    <div id="jogo-container">
+        <div id="enigma-display">
+            <h1>Carregando Jogo...</h1>
+        </div>
+
+        <div id="input-area">
+            <input type="text" id="codigo-input" placeholder="Insira o Código Secreto aqui">
+            <button onclick="checkCode()">RESPONDER</button>
+            <p id="feedback" class="mensagem-erro"></p>
+        </div>
+    </div>
+    
+    <div id="pistaModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2 id="modal-title">Pista do Enigma</h2>
+        <img id="modal-image" src="" alt="Pista do Enigma">
+      </div>
+    </div>
+
+    <script>
+        async function generateHash(text) {
+            // Converts to UPPERCASE before hashing
+            const msgUint8 = new TextEncoder().encode(text.toUpperCase()); 
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
+        
+        // --- MODAL FUNCTIONS AND ELEMENTS ---
+        const modal = document.getElementById('pistaModal');
+        const modalImage = document.getElementById('modal-image');
+        const modalTitle = document.getElementById('modal-title');
+
+        // IMAGE URLS (PLACEHOLDERS)
+        const HINT_IMAGES = {
+            'stage4': "img/numbers_stage_4.png",
+            'stage6': "img/numbers_stage_6.png",
+        };
+
+        function openModal(stage) {
+            if (stage === 4) {
+                modalImage.src = HINT_IMAGES.stage4;
+                modalTitle.textContent = "Pista da Fase 4: A Anotação Numérica";
+            } else if (stage === 6) {
+                modalImage.src = HINT_IMAGES.stage6;
+                modalTitle.textContent = "Pista da Fase 6: O Destino de Ezreal";
+            }
+            modal.style.display = "block";
+        }
+
+        function closeModal() {
+            modal.style.display = "none";
+        }
+
+        // Closes the modal if the user clicks outside it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+
+        // --- GAME STAGES: GAME THEME (8 Enigmas + 1 End) ---
+        const STAGES = {
+            1: {
+                enigma: `
+                    <h1>Fase 1: O Ser Assustador</h1>
+                    <p>Zilian te faz uma charada:</p>
+                    <div class="charada">
+                        <p>
+                            “Sou um marco no campo de batalha,<br>
+                            onde as equipes mudam o rumo da guerra.<br>
+                            Aos dragões eu não pertenço,<br>
+                            mas sou mais temido que todos eles juntos.<br>
+                            Quando o relógio marca meu despertar,<br>
+                            os invocadores se unem em minha volta para lutar.<br>
+                        </p>
+                    </div>
+                    <p>Insira a **PALAVRA-CHAVE** abaixo.</p>
+                `,
+                correctHash: "00e7e8cf5376431fddbb277893eefb159cc6be401ee1cd6b75e91023e949752e",
+                nextCode: 2,
+                successFeedback: "PALAVRA-CHAVE ACEITA! Fase 2 carregando...",
+            },
+            2: {
+                enigma: `
+                    <h1>Fase 2: Movimento na Escuridão</h1>
+                    <p>Ryze te deixo algumas letras que ouviu de um monge cego, e te fala 3 coisas:</p>
+                    <p>1- Que elas podem mudar a partir do movimento.</p>
+                    <p>2- Sempre ao se movimentar seguem para frente.</p>
+                    <p>3- Depois de 3 movimentos nunca voltaram a ser o que era.</p>
+                    <div class="cifra-cesar">
+                        FKPBZ
+                    </div>
+                    <p>Insira a **PALAVRA-CHAVE** abaixo.</p>
+                `,
+                correctHash: "f64a0417794df3d3266566aa883ef34e5a3c12d1c8852aca7deda8cdca95d307",
+                nextCode: 3,
+                successFeedback: "PALAVRA-CHAVE ACEITA! Fase 3 carregando...",
+            },
+            3: {
+                enigma: `
+                    <h1>Fase 3: Linguagem das Máquinas</h1>
+                    <p>Viktor enviou uma mensagem através do blitzcrant, ele diz para contruir a imagem de seu novo proejto.</p>
+                    <div class="codigo-binario">
+                        01101000 01110100 01110100 01110000 01110011 00111010 00101111 00101111 00101010 00101010 00101010 00101010 00101010 00101110 01100011 01101111 01101101 00101111 01100001 00101111 01000011 00110010 00110111 01010010 00110111 01011010 01010001 
+                    </div>
+                    <p>Insira a **PALAVRA-CHAVE** abaixo.</p>
+                `,
+                correctHash: "d38f9fcdf25457621c8a89275e802e158bad4d57bad31ee09aed48669d6868d3",
+                nextCode: 4,
+                successFeedback: "PALAVRA-CHAVE ACEITA! Fase 4 carregando...",
+            },
+            4: {
+                enigma: `
+                    <h1>Fase 4: Amor por Números</h1>
+                    <p>Ao realizar suas pesquisas Singed encontra um papel que ele sempre soube o que era. Ele lembra sobre seus ensinamentos onde números também podem ser escritos como palavras, basta compreender sua ordem.</p>
+                    <p>Clique abaixo para ver a anotação:</p>
+                    <button class="btn-pista" onclick="openModal(4)">Ver Anotação</button>
+                    <p>Insira a **PALAVRA-CHAVE** abaixo.</p>
+                `,
+                correctHash: "463cedf14606557478dd1a62f6b09c146d38679abcc440134767b713c43e1062",
+                nextCode: 5,
+                successFeedback: "PALAVRA-CHAVE ACEITA! Fase 5 carregando...",
+            },
+            5: {
+                enigma: `
+                    <h1>Fase 5: O Poder do Mago</h1>
+                    <p>Veigar encontrou um código que nunca viu antes, por mais conhecimento que tenha não consegue decifrar, mas ele tem certeza de que se trata de uma antigo item com um link extremamente forte com a imagem da maldade!</p>
+                    <div class="codigo-pista">
+                        --.. .. ...- .-. - ...-- --.
+                    </div>
+                    <p>Insira a **PALAVRA-CHAVE** abaixo.</p>
+                `,
+                correctHash: "d7db9686c5b12216a92a934d1f532f731224936310f280e9269bad582a61ba5d",
+                nextCode: 6,
+                successFeedback: "PALAVRA-CHAVE ACEITA! Fase 6 carregando...",
+            },
+            6: {
+                enigma: `
+                    <h1>Fase 6: O Caminho Para o Equilíbrio</h1>
+                    <p>Ezreal está seguindo viajem e precisa decidir seu proximo destino, através de uma nova relíquia. Ela mostra onde ele deve ir através de números.</p>
+                    <p>Clique abaixo para ver o mapa:</p>
+                    <button class="btn-pista" onclick="openModal(6)">Ver Pista de Localização</button>
+                    <p>Insira a **PALAVRA-CHAVE** abaixo.</p>
+                `,
+                correctHash: "78467502ce393df1d6881025e2146b8d25c89835e8ef1b6258ad3fdccc92aad5",
+                nextCode: 7,
+                successFeedback: "PALAVRA-CHAVE ACEITA! Fase 7 carregando...",
+            },
+            7: {
+                enigma: `
+                    <h1>Fase 7: O Texto Antigo</h1>
+                    <p>Ryze recita uma citação:</p>
+                    <ul class="acrostico">
+                        <li>Antigos segredos repousam em silêncio.</li>
+                        <li>Revestidos de mistério, apenas poucos compreendem.</li>
+                        <li>Cifras e símbolos ocultam meu verdadeiro poder.</li>
+                        <li>Apenas os curiosos ousam me buscar.</li>
+                        <li>Nas sombras do saber, guardo meu valor.</li>
+                        <li>E sou chamado de… ?</li>
+                    </ul>
+                    <p>Insira a **PALAVRA-CHAVE** abaixo.</p>
+                `,
+                correctHash: "4efe1c3f0551a4b87fcef112fcd6ca708db6e6ba16d2fdcc6b817bc88037dc2e",
+                nextCode: 8,
+                successFeedback: "PALAVRA-CHAVE ACEITA! Fase 8 carregando...",
+            },
+            8: {
+                enigma: `
+                    <h1>Fase 8: A Primeira Chave</h1>
+                    <p>Para encontrar a chave você precisa relembrar seu caminho até aqui, pois ela está escrita em todo o seu percurso do começo ao fim. </p>
+                    <p>Insira a **PALAVRA-CHAVE** abaixo.</p>
+                `,
+                correctHash: "b8c43cc9c004e46cdce9741fb818e6c5227d36b5be72c710f340ca6561e525e2",
+                nextCode: 9, // Next is the End Screen
+                successFeedback: "METACHAVE DESTRANCADA! A missão está concluída. Iniciando a finalização...",
+            },
+            9: {
+                enigma: `
+                    <h1 style="color: #00ff00;">>>> ENIGMA CONCLUÍDO! <<<</h1>
+                    <p>Parabéns, Comandante. Você decifrou todos os códigos e provou ser um mestre dos enigmas digitais e da Metacriptografia. Você desbloqueou o **Achievement: ARG Master**.</p>
+                    <p>O desafio chegou ao fim. **Parabéns!**</p>
+                `,
+                correctHash: "", 
+                nextCode: null,
+                successFeedback: "",
+            }
+        };
+
+        // --- CONTROL LOGIC
+        let currentStage = 1;
+        const inputField = document.getElementById('codigo-input');
+        const feedbackArea = document.getElementById('feedback');
+        const enigmaDisplay = document.getElementById('enigma-display');
+
+        async function checkCode() {
+            const answer = inputField.value.trim();
+            const stage = STAGES[currentStage];
+
+            if (!stage || !answer) {
+                feedbackArea.textContent = "Digite algo para decifrar a mensagem...";
+                feedbackArea.className = 'mensagem-erro';
+                return;
+            }
+            
+            // All answers are normal words and will be converted to UPPERCASE for the hash.
+            const inputHash = await generateHash(answer);
+
+            if (inputHash === stage.correctHash) {
+                
+                feedbackArea.textContent = stage.successFeedback;
+                feedbackArea.className = 'mensagem-sucesso';
+                
+                inputField.value = '';
+                const nextStageCode = stage.nextCode;
+                
+                setTimeout(() => {
+                    currentStage = nextStageCode;
+                    loadNewStage();
+                }, 3000); 
+
+            } else {
+                feedbackArea.textContent = "Resposta Incorreta. Tente novamente...";
+                feedbackArea.className = 'mensagem-erro';
+            }
+        }
+
+        function loadNewStage() {
+            const stage = STAGES[currentStage];
+            
+            if (!stage) {
+                enigmaDisplay.innerHTML = '<h1>ERRO DE CARREGAMENTO</h1>';
+                document.getElementById('input-area').style.display = 'none';
+                return;
+            }
+            
+            enigmaDisplay.innerHTML = stage.enigma;
+            
+            // Hides the input area in the final stage (Stage 9)
+            if (currentStage === 9) {
+                document.getElementById('input-area').style.display = 'none';
+            } else {
+                document.getElementById('input-area').style.display = 'flex';
+            }
+            
+            feedbackArea.textContent = '';
+            feedbackArea.className = '';
+        }
+
+        document.addEventListener('DOMContentLoaded', loadNewStage);
+    </script>
+</body>
+</html>
