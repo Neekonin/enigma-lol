@@ -203,6 +203,7 @@
 
         // IMAGE URLS (PLACEHOLDERS)
         const HINT_IMAGES = {
+            'stage3': "img/numbers_stage_3.png",
             'stage4': "img/numbers_stage_4.png",
             'stage6': "img/numbers_stage_6.png",
         };
@@ -210,11 +211,15 @@
         function openModal(stage) {
             if (stage === 4) {
                 modalImage.src = HINT_IMAGES.stage4;
-                modalTitle.textContent = "Pista da Fase 4: A Anotação Numérica";
+                modalTitle.textContent = "A Anotação Numérica";
             } else if (stage === 6) {
                 modalImage.src = HINT_IMAGES.stage6;
-                modalTitle.textContent = "Pista da Fase 6: O Destino de Ezreal";
+                modalTitle.textContent = "Números da Relíquia";
+            } else if (stage === 3) {
+                modalImage.src = HINT_IMAGES.stage6;
+                modalTitle.textContent = "Projeto do Heimerdinger";
             }
+
             modal.style.display = "block";
         }
 
@@ -272,9 +277,12 @@
             3: {
                 enigma: `
                     <h1>Fase 3: Linguagem das Máquinas</h1>
-                    <p>Viktor enviou uma mensagem através do blitzcrant, ele diz para contruir a imagem de seu novo proejto.</p>
+                    <p>Ekko recebeu um projeto do heimerdinger. mas ele não sabe dizer do que se trata.</p>
+                    <p>Clique abaixo para ver o projeto:</p>
+                    <button class="btn-pista" onclick="openModal(3)">Ver Anotação</button>
+                    <p>Junto do projeto ele também encontrou esses números:</p>
                     <div class="codigo-binario">
-                        01101000 01110100 01110100 01110000 01110011 00111010 00101111 00101111 00101010 00101010 00101010 00101010 00101010 00101110 01100011 01101111 01101101 00101111 01100001 00101111 01000011 00110010 00110111 01010010 00110111 01011010 01010001 
+                        01101000 01110100 01110100 01110000 01110011 00111010 00101111 00101111 00101010 00101010 00101010 00101010 00101010 00101110 01100011 01101111 01101101 00101111 01100001 00101111 01000011 00110010 00110117 01010010 00110111 01011010 01010001 
                     </div>
                     <p>Insira a **PALAVRA-CHAVE** abaixo.</p>
                 `,
